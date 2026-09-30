@@ -86,3 +86,10 @@ Format pro Eintrag: Datum – Kontext – Entscheidung – Alternativen.
   ergänzen nur Logik, keine Typ-Brüche; `schemaVersion` sichert Savegames ab M10.
 - **Alternativen:** Typen pro Meilenstein einzeln einführen (führt zu häufigen
   Signaturen-Änderungen und Test-Churn).
+
+---
+
+## 2026-09-30 – Plan aufgeteilt, kleine Schritte, `npm run check`
+- **Kontext:** Mit 64k Kontext lief Qwen voll (Prompt 55–65k Tokens) und brach Antworten ab („Max tokens“).
+- **Entscheidung:** Masterplan in `docs/plan/*.md` aufgeteilt (`docs/MASTERPLAN.md` ist nur noch Index). Meilensteine in Schritte mit ≤ ~4 Dateien zerlegt. Regeln in `QWEN.md`. Eine Session pro Schritt, Übergabe über PROGRESS.md „Nächster Schritt“. Neues Script `check` mit kompakter Ausgabe.
+- **Alternativen:** Ein großes Dokument + `/compress` (verliert Details, bricht trotzdem ab).

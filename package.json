@@ -12,7 +12,8 @@
     "typecheck": "tsc -b",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "sim": "echo \"npm run sim ist ab M11 verfuegbar (headless Bot-Simulation, siehe docs/PROGRESS.md)\""
+    "sim": "echo \"npm run sim ist ab M11 verfuegbar (headless Bot-Simulation, siehe docs/PROGRESS.md)\"",
+    "check": "tsc -b && eslint . --quiet && vitest run --reporter=dot"
   },
   "dependencies": {
     "react": "^19.2.8",

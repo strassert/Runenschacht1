@@ -1,30 +1,27 @@
 # Fortschritt Runenschacht
 
-## Aktueller Meilenstein: M1 (abgeschlossen) – nächster: M2 (Kampf-Engine headless)
-
-## Erledigt
-- [x] M0 – Projekt-Setup: Vite + React + TS strict, ESLint (statt oxlint), Prettier, Vitest, Zustand;
-      Ordnerstruktur gemäß Masterplan 5.3; npm-Scripts `dev, build, preview, test, test:watch,
-      typecheck, lint, format, sim`; `docs/` angelegt; Leerseite mit Titel „Runenschacht“;
-      ESLint-Regel verbietet `Math.random()`/`Date.now()` und React-Importe in `src/core`.
-- [x] M1 – Core-Fundament: alle Typen aus Masterplan 6 (`src/core/types/`); seedbarer RNG
-      (cyrb128 + sfc32) mit 10 getrennten Streams (`rng/Rng.ts`, `rng/streams.ts`);
-      Stapel-Logik ziehen/ablegen/erschöpfen/Nachmischen/innate (`deck/piles.ts`,
-      `deck/shuffle.ts`, `deck/upgrade.ts`); Karteninstanzen mit UIDs; Konstanten
-      (`constants.ts`); Invarianten-Checker (`invariants.ts`); öffentliche Core-API
-      (`src/core/index.ts`); Tests: RNG-Determinismus, Streams, Ziehen mit Nachmischen,
-      Invarianten (44 Tests).
+## Erledigt (eine Zeile pro Schritt)
+- [x] M0 – Setup: Vite + React 19 + TS 6 strict, ESLint 10 (Flat) + Prettier, Vitest 5, Zustand; Ordnerstruktur; Scripts; ESLint sperrt Math.random/Date.now/React in src/core.
+- [x] M1 – Core-Fundament: Typen (`src/core/types/`), RNG cyrb128+sfc32 mit 10 Streams (`withStream`), Stapel-Logik (`deck/piles.ts`, `shuffle.ts`, `upgrade.ts` – nur Flag), Konstanten, Invarianten-Checker, Core-API `src/core/index.ts`. 44 Tests.
+- [x] Plan umgebaut: Masterplan in `docs/plan/*.md` aufgeteilt, Meilensteine in kleine Schritte (M2.1 …) zerlegt, Arbeitsregeln in `QWEN.md`, neues Script `npm run check`.
 
 ## In Arbeit
-- [ ] (keine)
+- (nichts)
+
+## Nächster Schritt
+- **ID:** M2.1 – Registry + erste Inhalte
+- **Ziel:** `src/core/registry.ts` (Maps + register/get für Karten, Gegner, Begegnungen, Artefakte, Tränke, Events, Skripte; unbekannte ID → Fehler mit ID). Starterkarten Schlag, Parade, Funkenschlag als `CardDef` inkl. Upgrade. Gegner Grubenratte als `EnemyDef` (weighted 70/30, maxRepeat 2). `src/content/index.ts` mit idempotentem `registerAllContent()`. Registry-Exporte in `src/core/index.ts`.
+- **Dateien:** `src/core/registry.ts`, `src/content/cards/runesmith/starter.ts`, `src/content/enemies/layer1.ts`, `src/content/index.ts`, `tests/core/registry.test.ts` (+ Export-Zeilen in `src/core/index.ts`)
+- **Plan lesen:** `docs/plan/05-effekte-trigger.md` → nur 8.4 (und 8.1 als Nachschlagewerk für die EffectSpec-Form); `docs/plan/07-karten.md` → nur Tabelle „Starter“; `docs/plan/08-gegner.md` → nur Zeile Grubenratte
+- **Code nachschlagen:** `src/core/types/cards.ts`, `src/core/types/enemies.ts`, `src/core/types/effects.ts`
+- **Fertig wenn:** Registrieren/Nachschlagen getestet, unbekannte ID wirft Fehler, doppelter `registerAllContent()`-Aufruf ist harmlos, `npm run check` grün.
 
 ## Offene Punkte / Bekannte Bugs
-- `npm run sim` ist bis M11 ein Platzhalter (echo-Hinweis); ab M11 headless Bot-Simulation.
-- `docs/CONTENT_GUIDE.md` und `README.md` werden gemäß Masterplan 16 bis M12 erstellt.
-- Framer Motion wird bewusst erst ab M5 installiert (Masterplan 4: Animationen M5).
-- M1-Vorbereitung auf M2/M3: `prepareDrawPile` nimmt ab M2 einen `isInnate`-Prädikat-Callback
-  (Karten-Registry kommt in M2/M3); `upgradeCard` setzt nur das Flag – die eigentliche
-  `CardUpgradeSpec`-Anwendung erfolgt mit der Registry in M3.
+- `npm run sim` ist bis M11 ein Platzhalter.
+- `docs/CONTENT_GUIDE.md` und `README.md` kommen in M12.6.
+- Framer Motion wird erst in M5.5 installiert.
+- `prepareDrawPile` bekommt ab M2.4 einen `isInnate`-Callback (über Registry); `upgradeCard` setzt nur das Flag, die `CardUpgradeSpec`-Anwendung kommt in M3.2.
+- Zähler `cardsGeneratedThisCombat` / `cardsRemovedThisCombat` müssen ab M2 von der Engine gepflegt werden (Invariante).
 
 ## Letzter Testlauf
-- typecheck: ✅ / lint: ✅ / tests: 44 ✅ 0 ❌ (4 Dateien: rng, deck, invariants, Dummy)
+- typecheck ✅ / lint ✅ / tests 44 ✅ 0 ❌ (Stand M1)
