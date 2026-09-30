@@ -114,3 +114,10 @@ Format pro Eintrag: Datum – Kontext – Entscheidung – Alternativen.
 - **Kontext:** 8.2 nennt das 1000-Actions-Limit ohne Ablageort; das Event `combatEnded` (5.2) gehört zum Command-Reducer (M2.5); 8.1 lässt die Perspektive von Gegner-Actions offen.
 - **Entscheidung:** `MAX_ACTIONS_PER_COMMAND` als technische Konstante in `constants.ts`; die Queue setzt nur `phase` victory/defeat, `combatEnded` kommt in M2.5; Zielauflösung immer relativ zum Action-Absender (Gegner-Actions zielen auf den Spieler).
 - **Alternativen:** Limit als Magic Number in der Queue; `combatEnded` schon in der Queue (doppelter Zustandsübergang).
+
+---
+
+## 2026-09-30 – M2.4: Intent-Vorschau, Schritt-Bündelung, Ritual-Timing, Run-HP
+- **Kontext:** 7.5 verlangt ehrliche Intents, dynamische ValueExprs (M3+) lassen sich zur Intent-Zeit nicht sicher auswerten; 7.2 nennt Hitze-Halbierung (Schritt 7) und Debuff-Abbau (Schritt 9) getrennt; der Kampfaufbau (7.1) verweist auf RunState-Werte, die es noch nicht gibt.
+- **Entscheidung:** `previewIntent` berechnet `damagePreview` nur für numerische Schadenswerte, dynamische ValueExprs lassen die Vorschau offen; `endPlayerTurn` bündelt Schritt 7+9 über `endOfOwnerTurn`; Gegner-Ritual greift am Ende der Gegnerrunde (konsistent zu `statuses.ts`); `setupCombat` nutzt `START_HP`/`MAX_ENERGY` als Standard, RunState-Übergang kommt in M2.5.
+- **Alternativen:** Vorschau mit halber Auswertung (unehrlich); getrennte Tick-Funktionen (dupliziert `statuses.ts`).
