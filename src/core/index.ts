@@ -49,6 +49,28 @@ export { upgradeCard, upgradeInPlace, upgradeAll } from './deck/upgrade'
 export { checkInvariants, checkCombatInvariants, type InvariantViolation } from './invariants'
 
 export {
+  registerCard,
+  getCard,
+  registerEnemy,
+  getEnemy,
+  registerEncounter,
+  getEncounter,
+  registerRelic,
+  getRelic,
+  registerPotion,
+  getPotion,
+  registerEvent,
+  getEvent,
+  registerScript,
+  getScript,
+  type EncounterDef,
+  type RelicDef,
+  type PotionDef,
+  type EventDef,
+  type ScriptFn,
+} from './registry'
+
+export {
   START_HP,
   MAX_ENERGY,
   DRAW_PER_TURN,

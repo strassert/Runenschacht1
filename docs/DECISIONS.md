@@ -93,3 +93,10 @@ Format pro Eintrag: Datum – Kontext – Entscheidung – Alternativen.
 - **Kontext:** Mit 64k Kontext lief Qwen voll (Prompt 55–65k Tokens) und brach Antworten ab („Max tokens“).
 - **Entscheidung:** Masterplan in `docs/plan/*.md` aufgeteilt (`docs/MASTERPLAN.md` ist nur noch Index). Meilensteine in Schritte mit ≤ ~4 Dateien zerlegt. Regeln in `QWEN.md`. Eine Session pro Schritt, Übergabe über PROGRESS.md „Nächster Schritt“. Neues Script `check` mit kompakter Ausgabe.
 - **Alternativen:** Ein großes Dokument + `/compress` (verliert Details, bricht trotzdem ab).
+
+---
+
+## 2026-09-30 – M2.1: Minimale Def-Typen in registry.ts
+- **Kontext:** 8.4 verlangt Registry-Maps für Begegnungen, Artefakte, Tränke, Events und Skripte, der Plan definiert aber keine Def-Typen dafür.
+- **Entscheidung:** Minimale Typen (`EncounterDef`, `RelicDef`, `PotionDef`, `EventDef`, `ScriptFn`) direkt in `src/core/registry.ts`; werden in den jeweiligen Meilensteinen (M2.5/M6/M7/M10, M3.1/M8.2) konkretisiert.
+- **Alternativen:** Leere `unknown`-Maps (verliert Typsicherheit).
