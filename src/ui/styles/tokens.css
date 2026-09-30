@@ -1,0 +1,18 @@
+/* Design-Tokens laut Masterplan 12.4:
+   Anthrazit, Kupfer, Glutorange, Kristallblau, Lavarot. */
+:root {
+  --color-bg: #16181d;
+  --color-bg-panel: #21242b;
+  --color-bg-card: #2a2e37;
+  --color-ink: #e8e4dc;
+  --color-ink-muted: #9a958c;
+
+  --color-copper: #c98a4b;
+  --color-ember: #ff8a3d;
+  --color-crystal: #7fd4ff;
+  --color-lava: #e3452e;
+  --color-ok: #7ac74f;
+
+  --radius-card: 10px;
+  --font-main: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
