@@ -46,6 +46,18 @@ export { drawCards, discardCard, exhaustCard, prepareDrawPile } from './deck/pil
 export type { DrawResult, MoveResult } from './deck/piles'
 export { upgradeCard, upgradeInPlace, upgradeAll } from './deck/upgrade'
 
+export { computeDamage, applyDamage, type DamageOptions, type DamageResult } from './combat/damage'
+export { computeBlock, applyBlock, type BlockResult } from './combat/block'
+export {
+  DEBUFF_STATUSES,
+  getStatusStacks,
+  applyStatus,
+  endOfOwnerTurn,
+  startOfOwnerTurn,
+  type StatusResult,
+  type TurnTickResult,
+} from './combat/statuses'
+
 export { checkInvariants, checkCombatInvariants, type InvariantViolation } from './invariants'
 
 export {

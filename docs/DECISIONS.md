@@ -100,3 +100,10 @@ Format pro Eintrag: Datum – Kontext – Entscheidung – Alternativen.
 - **Kontext:** 8.4 verlangt Registry-Maps für Begegnungen, Artefakte, Tränke, Events und Skripte, der Plan definiert aber keine Def-Typen dafür.
 - **Entscheidung:** Minimale Typen (`EncounterDef`, `RelicDef`, `PotionDef`, `EventDef`, `ScriptFn`) direkt in `src/core/registry.ts`; werden in den jeweiligen Meilensteinen (M2.5/M6/M7/M10, M3.1/M8.2) konkretisiert.
 - **Alternativen:** Leere `unknown`-Maps (verliert Typsicherheit).
+
+---
+
+## 2026-09-30 – M2.2: Debuff-Liste für Bannrune, Hooks als Callbacks
+- **Kontext:** 7.4 lässt Bannrune „Debuffs“ blocken, ohne sie aufzuzählen; 7.3 nennt Damage-Hooks und Trigger (Schritt 9), die Trigger-Engine kommt aber erst in M4.
+- **Entscheidung:** `DEBUFF_STATUSES = vulnerable/weak/frail/burn` in `statuses.ts`; Formeln lesen ausschließlich `Combatant.statuses`; `modifyOutgoing/IncomingDamage` als optionale Callbacks in `DamageOptions`; Trigger (onDamageDealt/onHpLost/onBlockBroken) bis M4 zurückgestellt, Dornen als einzige Ausnahme umgesetzt.
+- **Alternativen:** Debuff-Flag pro Statusdefinition (überkonstruiert ohne 8.3); Trigger-Engine jetzt (Schritt-Sprengung).

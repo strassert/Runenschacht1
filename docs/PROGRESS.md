@@ -5,17 +5,18 @@
 - [x] M1 – Core-Fundament: Typen (`src/core/types/`), RNG cyrb128+sfc32 mit 10 Streams (`withStream`), Stapel-Logik (`deck/piles.ts`, `shuffle.ts`, `upgrade.ts` – nur Flag), Konstanten, Invarianten-Checker, Core-API `src/core/index.ts`. 44 Tests.
 - [x] Plan umgebaut: Masterplan in `docs/plan/*.md` aufgeteilt, Meilensteine in kleine Schritte (M2.1 …) zerlegt, Arbeitsregeln in `QWEN.md`, neues Script `npm run check`.
 - [x] M2.1 – Registry + erste Inhalte: `src/core/registry.ts` (Maps + register/get für Karten, Gegner, Begegnungen, Artefakte, Tränke, Events, Skripte; unbekannte ID → Fehler mit ID), Starterkarten Schlag/Parade/Funkenschlag, Grubenratte (weighted 70/30, maxRepeat 2), `registerAllContent()` idempotent, Registry-Exporte in Core-API. 49 Tests.
+- [x] M2.2 – Schadens-/Block-Formel + Status: `combat/damage.ts` (7.3 in Reihenfolge, raw ignoriert Kraft/Geschwächt/Verwundbar, Hooks als Callbacks, Dornen), `combat/block.ts` (Gewandtheit/Zerbrechlich), `combat/statuses.ts` (anwenden/stapeln, Abbau Ende der eigenen Runde, Brand zu Rundenbeginn, Hitze halbieren, Ritual, Bannrune blockt Debuffs). 91 Tests.
 
 ## In Arbeit
 - (nichts)
 
 ## Nächster Schritt
-- **ID:** M2.2 – Schadens-/Block-Formel + Status
-- **Ziel:** Schadens-/Block-Formel + Status: 7.3 exakt in Reihenfolge; Status aus 7.4 anwenden/stapeln/abbauen (Zeitpunkt: Ende der eigenen Runde des Trägers); Bannrune blockt Debuffs.
-- **Dateien:** `src/core/combat/damage.ts`, `src/core/combat/block.ts`, `src/core/combat/statuses.ts`, `tests/core/damage.test.ts`, `tests/core/statuses.test.ts`
-- **Plan lesen:** `docs/plan/04-kampf.md` → nur 7.3 und 7.4
-- **Code nachschlagen:** `src/core/types/effects.ts` (StatusId), `src/core/types/state.ts` (StatusInstance, Combatant)
-- **Fertig wenn:** Alle Kombinationen Kraft/Geschwächt/Verwundbar/Zerbrechlich/Block/Körperlos getestet, `npm run check` grün.
+- **ID:** M2.3 – Action-Queue + Basis-Effekte
+- **Ziel:** FIFO-Queue, „vorne einreihen“, 1000-Action-Schutz, Tod-Prüfung nach jeder Action; Effekte `damage`, `block`, `applyStatus`, `draw`, `gainEnergy`; Zielauflösung; GameEvents erzeugen.
+- **Dateien:** `src/core/combat/actionQueue.ts`, `src/core/effects/basicEffects.ts`, `src/core/effects/targeting.ts`, `tests/core/actionQueue.test.ts`
+- **Plan lesen:** `docs/plan/02-technik-architektur.md` → nur 5.2; `docs/plan/05-effekte-trigger.md` → nur 8.1 (nur diese 5 Effekte) und 8.2
+- **Code nachschlagen:** `src/core/types/commands.ts`, `src/core/types/effects.ts` (EffectSpec), `src/core/deck/piles.ts` (drawCards), `src/core/combat/` (M2.2)
+- **Fertig wenn:** Queue-Reihenfolge, Endlosschutz und Tod mitten in der Queue getestet, `npm run check` grün.
 
 ## Offene Punkte / Bekannte Bugs
 - `npm run sim` ist bis M11 ein Platzhalter.
@@ -23,6 +24,7 @@
 - Framer Motion wird erst in M5.5 installiert.
 - `prepareDrawPile` bekommt ab M2.4 einen `isInnate`-Callback (über Registry); `upgradeCard` setzt nur das Flag, die `CardUpgradeSpec`-Anwendung kommt in M3.2.
 - Zähler `cardsGeneratedThisCombat` / `cardsRemovedThisCombat` müssen ab M2 von der Engine gepflegt werden (Invariante).
+- Trigger-Hooks `onDamageDealt` / `onHpLost` / `onBlockBroken` (7.3 Schritt 9) kommen mit der Trigger-Engine in M4; `applyDamage` nimmt deshalb Hooks als Callbacks entgegen.
 
 ## Letzter Testlauf
-- typecheck ✅ / lint ✅ / tests 49 ✅ 0 ❌ (Stand M2.1)
+- typecheck ✅ / lint ✅ / tests 91 ✅ 0 ❌ (Stand M2.2)
