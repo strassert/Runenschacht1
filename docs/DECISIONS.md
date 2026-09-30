@@ -107,3 +107,10 @@ Format pro Eintrag: Datum – Kontext – Entscheidung – Alternativen.
 - **Kontext:** 7.4 lässt Bannrune „Debuffs“ blocken, ohne sie aufzuzählen; 7.3 nennt Damage-Hooks und Trigger (Schritt 9), die Trigger-Engine kommt aber erst in M4.
 - **Entscheidung:** `DEBUFF_STATUSES = vulnerable/weak/frail/burn` in `statuses.ts`; Formeln lesen ausschließlich `Combatant.statuses`; `modifyOutgoing/IncomingDamage` als optionale Callbacks in `DamageOptions`; Trigger (onDamageDealt/onHpLost/onBlockBroken) bis M4 zurückgestellt, Dornen als einzige Ausnahme umgesetzt.
 - **Alternativen:** Debuff-Flag pro Statusdefinition (überkonstruiert ohne 8.3); Trigger-Engine jetzt (Schritt-Sprengung).
+
+---
+
+## 2026-09-30 – M2.3: Queue-Grenze, Kampfende als Phase, Ziel-Perspektive
+- **Kontext:** 8.2 nennt das 1000-Actions-Limit ohne Ablageort; das Event `combatEnded` (5.2) gehört zum Command-Reducer (M2.5); 8.1 lässt die Perspektive von Gegner-Actions offen.
+- **Entscheidung:** `MAX_ACTIONS_PER_COMMAND` als technische Konstante in `constants.ts`; die Queue setzt nur `phase` victory/defeat, `combatEnded` kommt in M2.5; Zielauflösung immer relativ zum Action-Absender (Gegner-Actions zielen auf den Spieler).
+- **Alternativen:** Limit als Magic Number in der Queue; `combatEnded` schon in der Queue (doppelter Zustandsübergang).

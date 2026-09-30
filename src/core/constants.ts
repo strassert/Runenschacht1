@@ -11,3 +11,5 @@ export const UID_PREFIX = 'c_' // Karten-Instanz-UIDs, z. B. "c_0042"
 
 export const ASCENSION_MAX = 10 // Tiefenstufe 0–10 (Masterplan 11.2)
 export const LAYERS = 3 // Schichten (Masterplan 9)
+
+export const MAX_ACTIONS_PER_COMMAND = 1000 // Masterplan 8.2: Endlosschleifenschutz der Action-Queue

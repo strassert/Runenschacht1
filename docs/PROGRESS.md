@@ -6,17 +6,18 @@
 - [x] Plan umgebaut: Masterplan in `docs/plan/*.md` aufgeteilt, Meilensteine in kleine Schritte (M2.1 …) zerlegt, Arbeitsregeln in `QWEN.md`, neues Script `npm run check`.
 - [x] M2.1 – Registry + erste Inhalte: `src/core/registry.ts` (Maps + register/get für Karten, Gegner, Begegnungen, Artefakte, Tränke, Events, Skripte; unbekannte ID → Fehler mit ID), Starterkarten Schlag/Parade/Funkenschlag, Grubenratte (weighted 70/30, maxRepeat 2), `registerAllContent()` idempotent, Registry-Exporte in Core-API. 49 Tests.
 - [x] M2.2 – Schadens-/Block-Formel + Status: `combat/damage.ts` (7.3 in Reihenfolge, raw ignoriert Kraft/Geschwächt/Verwundbar, Hooks als Callbacks, Dornen), `combat/block.ts` (Gewandtheit/Zerbrechlich), `combat/statuses.ts` (anwenden/stapeln, Abbau Ende der eigenen Runde, Brand zu Rundenbeginn, Hitze halbieren, Ritual, Bannrune blockt Debuffs). 91 Tests.
+- [x] M2.3 – Action-Queue + Basis-Effekte: `combat/actionQueue.ts` (FIFO, front-Einreihen, 1000-Action-Schutz, Tod-Prüfung nach jeder Action → victory/defeat), `effects/basicEffects.ts` (damage/block/applyStatus/draw/gainEnergy + ValueExpr-Auswertung), `effects/targeting.ts` (TargetMode → Entity-Ids, Perspektive des Absenders). 111 Tests.
 
 ## In Arbeit
 - (nichts)
 
 ## Nächster Schritt
-- **ID:** M2.3 – Action-Queue + Basis-Effekte
-- **Ziel:** FIFO-Queue, „vorne einreihen“, 1000-Action-Schutz, Tod-Prüfung nach jeder Action; Effekte `damage`, `block`, `applyStatus`, `draw`, `gainEnergy`; Zielauflösung; GameEvents erzeugen.
-- **Dateien:** `src/core/combat/actionQueue.ts`, `src/core/effects/basicEffects.ts`, `src/core/effects/targeting.ts`, `tests/core/actionQueue.test.ts`
-- **Plan lesen:** `docs/plan/02-technik-architektur.md` → nur 5.2; `docs/plan/05-effekte-trigger.md` → nur 8.1 (nur diese 5 Effekte) und 8.2
-- **Code nachschlagen:** `src/core/types/commands.ts`, `src/core/types/effects.ts` (EffectSpec), `src/core/deck/piles.ts` (drawCards), `src/core/combat/` (M2.2)
-- **Fertig wenn:** Queue-Reihenfolge, Endlosschutz und Tod mitten in der Queue getestet, `npm run check` grün.
+- **ID:** M2.4 – Kampfaufbau & Rundenablauf
+- **Ziel:** Setup (HP würfeln, mischen, innate), Spielerrunde Start/Ende (Glut, Block-Verfall, ziehen, Handkarten ablegen), Gegnerrunde; Gegner-KI `weighted` + `cycle`; ehrliche Intents.
+- **Dateien:** `src/core/combat/combatSetup.ts`, `src/core/combat/turn.ts`, `src/core/combat/enemyAi.ts`, `tests/core/turn.test.ts`
+- **Plan lesen:** `docs/plan/04-kampf.md` → nur 7.1, 7.2, 7.5
+- **Code nachschlagen:** `src/core/combat/actionQueue.ts` (runActionQueue), `src/core/deck/piles.ts` (drawCards, prepareDrawPile), `src/core/registry.ts` (Gegner-Defs), `src/core/rng/streams.ts`
+- **Fertig wenn:** Rundenablauf und KI (maxRepeat, cycle) getestet; Intent-Zahl = echter Schaden.
 
 ## Offene Punkte / Bekannte Bugs
 - `npm run sim` ist bis M11 ein Platzhalter.
@@ -27,4 +28,4 @@
 - Trigger-Hooks `onDamageDealt` / `onHpLost` / `onBlockBroken` (7.3 Schritt 9) kommen mit der Trigger-Engine in M4; `applyDamage` nimmt deshalb Hooks als Callbacks entgegen.
 
 ## Letzter Testlauf
-- typecheck ✅ / lint ✅ / tests 91 ✅ 0 ❌ (Stand M2.2)
+- typecheck ✅ / lint ✅ / tests 111 ✅ 0 ❌ (Stand M2.3)
