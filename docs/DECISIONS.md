@@ -121,3 +121,10 @@ Format pro Eintrag: Datum – Kontext – Entscheidung – Alternativen.
 - **Kontext:** 7.5 verlangt ehrliche Intents, dynamische ValueExprs (M3+) lassen sich zur Intent-Zeit nicht sicher auswerten; 7.2 nennt Hitze-Halbierung (Schritt 7) und Debuff-Abbau (Schritt 9) getrennt; der Kampfaufbau (7.1) verweist auf RunState-Werte, die es noch nicht gibt.
 - **Entscheidung:** `previewIntent` berechnet `damagePreview` nur für numerische Schadenswerte, dynamische ValueExprs lassen die Vorschau offen; `endPlayerTurn` bündelt Schritt 7+9 über `endOfOwnerTurn`; Gegner-Ritual greift am Ende der Gegnerrunde (konsistent zu `statuses.ts`); `setupCombat` nutzt `START_HP`/`MAX_ENERGY` als Standard, RunState-Übergang kommt in M2.5.
 - **Alternativen:** Vorschau mit halber Auswertung (unehrlich); getrennte Tick-Funktionen (dupliziert `statuses.ts`).
+
+---
+
+## 2026-10-01 – M2.5: gainHeat vorziehen
+- **Kontext:** Der M2.5-Integrationstest spielt das Startdeck; Funkenschlag braucht dafür den Hitze-Effekt (eigentlich M3.2).
+- **Entscheidung:** `gainHeat` als EffectSpec in `basicEffects.ts` (Hitze auf die Quelle, Abbau Ende der eigenen Runde); Trigger-Integration (onHeatGained/-Lost) bleibt in M3.2. Außerdem 6 Dateien statt ~4 (Core-Exporte + basicEffects).
+- **Alternativen:** Test ohne Funkenschlag – deckt das echte Startdeck nicht ab.

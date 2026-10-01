@@ -1,30 +1,36 @@
-// Kampfende (Masterplan 7.2 'Kampfende'): combatEnded-Event genau einmal,
-// HP aus dem Kampf zurück in den Run, Statistik, Screen-Wechsel. Der
-// finale Kampf bleibt als Brett in state.combat stehen (UI zeigt ihn);
-// rewardState (Belohnungskarten) und onCombatEnd-Trigger folgen in M4/M6.
+// Kampfende (Masterplan 7.2 'Kampfende'): combatEnded-Event, HP-Rückkopplung
+// in den RunState, Statistik (Kills, gespielte Karten, Siege). Der Kampf-
+// zustand bleibt erhalten (Phase victory/defeat) – Belohnungs-Screen und
+// Map-Rückkehr folgen in M6; damageDealt/-Taken-Statistik kommt mit M7.
+import type { CombatState, RunState } from '../types/state'
 import type { GameEvent } from '../types/events'
-import type { CombatState, RunState, RunStats } from '../types/state'
 
-export interface EndCombatResult {
-  state: RunState
+export interface FinishResult {
+  run: RunState
   events: GameEvent[]
 }
 
-export function endCombat(state: RunState, combat: CombatState): EndCombatResult {
+export function isCombatOver(combat: CombatState): boolean {
+  return combat.phase === 'victory' || combat.phase === 'defeat'
+}
+
+/** Einmaliger Abschluss: combatEnded + Run-Anpassung (Kampf bleibt sichtbar). */
+export function finishCombat(run: RunState, combat: CombatState): FinishResult {
+  if (!isCombatOver(combat)) {
+    throw new Error(`finishCombat: Kampf ist nicht beendet (Phase '${combat.phase}')`)
+  }
   const victory = combat.phase === 'victory'
-  const stats: RunStats = {
-    ...state.stats,
-    cardsPlayed: state.stats.cardsPlayed + combat.cardsPlayedThisCombat,
-    kills: state.stats.kills + combat.enemies.filter((e) => !e.alive).length,
-    combatsWon: state.stats.combatsWon + (victory ? 1 : 0),
-    // damageDealt/damageTaken folgen mit der Trigger-Engine (M4) – Offener Punkt.
-  }
-  const next: RunState = {
-    ...state,
-    hp: Math.max(0, combat.player.hp), // Run-HP bleibt ≥ 0 (Invariante)
+  const kills = combat.enemies.filter((e) => !e.alive).length
+  const run2: RunState = {
+    ...run,
+    hp: Math.max(0, combat.player.hp),
     combat,
-    stats,
-    screen: victory ? { kind: 'reward' } : { kind: 'gameOver' },
+    stats: {
+      ...run.stats,
+      kills: run.stats.kills + kills,
+      cardsPlayed: run.stats.cardsPlayed + combat.cardsPlayedThisCombat,
+      combatsWon: run.stats.combatsWon + (victory ? 1 : 0),
+    },
   }
-  return { state: next, events: [{ type: 'combatEnded', victory }] }
+  return { run: run2, events: [{ type: 'combatEnded', victory }] }
 }

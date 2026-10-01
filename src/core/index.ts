@@ -58,6 +58,12 @@ export {
   type TurnTickResult,
 } from './combat/statuses'
 
+export { setupCombat, type SetupOptions, type SetupResult } from './combat/combatSetup'
+export { startPlayerTurn, endPlayerTurn, runEnemyTurn, type TurnResult } from './combat/turn'
+export { playCard, cardCost, type PlayCardResult } from './combat/playCard'
+export { finishCombat, isCombatOver, type FinishResult } from './combat/victory'
+export { combatReducer, type ReducerResult } from './combat/combatReducer'
+
 export { checkInvariants, checkCombatInvariants, type InvariantViolation } from './invariants'
 
 export {

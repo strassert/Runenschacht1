@@ -1,5 +1,5 @@
 // Ausführung der Basis-Effekte (Masterplan 8.1, Schritt M2.3): damage,
-// block, applyStatus, draw, gainEnergy. Pure: neues combat/rngStates +
+// block, applyStatus, draw, gainEnergy (+ gainHeat seit M2.5, für Funkenschlag). Pure: neues combat/rngStates +
 // GameEvents. ValueExpr-Auswertung inklusive. Andere EffectSpec-Typen
 // folgen ab M3 und sind bis dahin ein Fehler.
 import type { TargetMode } from '../types/cards'
@@ -145,8 +145,16 @@ export function executeEffect(
       const events: GameEvent[] = [{ type: 'energyChanged', entityId: player.id, delta: amount, total }]
       return { combat: { ...combat, player: { ...player, energy: total } }, rngStates, events }
     }
+    case 'gainHeat': {
+      // Hitze ist ein Status auf der Spielerin (7.4); endOfOwnerTurn halbiert sie.
+      const source = findCombatant(combat, sourceId)
+      if (source === null) return { combat, rngStates, events: [] }
+      const amount = evaluateValue(effect.amount, valueCtx(combat, source, null))
+      const result = applyStatus(source, 'heat', amount)
+      return { combat: withCombatant(combat, result.combatant), rngStates, events: result.events }
+    }
     default:
-      throw new Error(`Effect '${effect.type}' ist bis M2.3 nicht implementiert`)
+      throw new Error(`Effect '${effect.type}' ist bis M2.5 nicht implementiert`)
   }
 }
 
