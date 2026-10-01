@@ -9,17 +9,18 @@
 - [x] M2.3 – Action-Queue + Basis-Effekte: `combat/actionQueue.ts` (FIFO, front-Einreihen, 1000-Action-Schutz, Tod-Prüfung nach jeder Action → victory/defeat), `effects/basicEffects.ts` (damage/block/applyStatus/draw/gainEnergy + ValueExpr-Auswertung), `effects/targeting.ts` (TargetMode → Entity-Ids, Perspektive des Absenders). 111 Tests.
 - [x] M2.4 – Kampfaufbau & Rundenablauf: `combat/combatSetup.ts` (HP-Würfel, Mischen, innate oben, onSpawn, Intents Runde 1), `combat/turn.ts` (startPlayerTurn, endPlayerTurn mit ethereal/retain, runEnemyTurn links→rechts), `combat/enemyAi.ts` (weighted mit maxRepeat, cycle mit startRandom), ehrliche Intents (damagePreview = echter Schaden). 137 Tests.
 - [x] M2.5 – Commands & Kampfende: `combat/playCard.ts` (Phasen-/Hand-/unplayable-Prüfung, `cardCost` mit X-Kosten, Effekte via Action-Queue, Ablage/Erschöpfung auch nach Kampfende), `combat/victory.ts` (`combatEnded`, HP-Rückkopplung, kills/cardsPlayed/combatsWon), `combat/combatReducer.ts` (playCard/endTurn-Kette bis Kampfende; chooseReward/chooseMapNode → M6), `gainHeat` in `basicEffects.ts` (für Funkenschlag, siehe DECISIONS), Core-Exporte; Integrationstest Startdeck vs. 2 Grubenratten (Sieg, Determinismus, Invarianten pro Command). 143 Tests.
+- [x] M3.1a – Effekte (Teil 1/2 von M3.1): `effects/valueExpr.ts` (ValueExpr-Module, `vars` = combat.counters), `effects/conditions.ts` (alle 4 ConditionExpr), `effects/moreEffects.ts` (consumeHeat, heal, loseHp, addCard, discard/exhaustFromHand/upgradeInHand mit choice 'random', gainGold, gainMaxHp, conditional, repeat, script), `script` über Registry + veränderbarer `EffectScriptCtx`; M3.1 wegen Dateiumfang geteilt (M3.1a/M3.1b, DECISIONS). 172 Tests.
 
 ## In Arbeit
 - (nichts)
 
 ## Nächster Schritt
-- **ID:** M3.1 – Restliche EffectSpecs + ValueExpr + ConditionExpr + `script`-Effekte + `pendingChoice`/`ChooseCards`
-- **Ziel:** Alle EffectSpec-Typen aus 8.1 implementieren; ValueExpr/ConditionExpr als eigene Module auswerten; `script`-Effekte über die Registry; `pendingChoice`/`ChooseCards` als Datenmodell.
-- **Dateien:** `src/core/effects/valueExpr.ts`, `src/core/effects/conditions.ts`, `src/core/effects/moreEffects.ts`, Tests
-- **Plan lesen:** `docs/plan/05-effekte-trigger.md` → nur 8.1, 8.5
-- **Code nachschlagen:** `src/core/effects/basicEffects.ts`, `src/core/effects/targeting.ts`, `src/core/combat/actionQueue.ts`, `src/core/types/effects.ts`, `src/core/registry.ts`
-- **Fertig wenn:** Jeder Effekttyp und jede ValueExpr-Art hat einen Test.
+- **ID:** M3.1b – `pendingChoice`/`ChooseCards` + `choice:'player'` + Run-Rückkopplung (Teil 2/2 von M3.1)
+- **Ziel:** `pendingChoice`/`ChooseCards` als Datenmodell (8.5); Action-Queue pausiert bei `choice:'player'` (discard/exhaustFromHand/upgradeInHand) und läuft nach Command fort; gainGold/gainMaxHp → RunState.
+- **Dateien:** `src/core/types/state.ts`, `src/core/types/commands.ts`, `src/core/combat/actionQueue.ts`, `src/core/combat/combatReducer.ts`, Tests
+- **Plan lesen:** `docs/plan/05-effekte-trigger.md` → nur 8.5
+- **Code nachschlagen:** `src/core/effects/moreEffects.ts`, `src/core/combat/actionQueue.ts`, `src/core/combat/combatReducer.ts`, `src/core/types/state.ts`
+- **Fertig wenn:** ChooseCards-Datenmodell + choice-'player'-Pause/Fortsetzung per Command getestet.
 
 ## Offene Punkte / Bekannte Bugs
 - `npm run sim` ist bis M11 ein Platzhalter.
@@ -30,6 +31,9 @@
 - Trigger-Hooks `onDamageDealt` / `onHpLost` / `onBlockBroken` (7.3 Schritt 9) kommen mit der Trigger-Engine in M4; `applyDamage` nimmt deshalb Hooks als Callbacks entgegen.
 - `costOverride` wird in `playCard` ausgewertet, aber nicht gelöscht (`until:'played'`); noch erzeugt kein Inhalt Overrides – Aufräumen in M3.2.
 - Run-Statistik `damageDealt` / `damageTaken` wird in `finishCombat` noch nicht aktualisiert (Trigger-Engine M4, Statistik-Ausbau M7).
+- `cardUpgraded`-Event fehlt (events.ts): `upgradeInHand` erzeugt derzeit kein Event.
+- `ValueContext.xValue` ist in `playCard` noch nicht verdrahtet (X-Kosten → Wert fehlt, M3.2+).
+- `gainGold` / `gainMaxHp` puffern nur in Combat (`counters.goldGained` / maxHp); RunState-Rückkopplung in M3.1b/M6.
 
 ## Letzter Testlauf
-- typecheck ✅ / lint ✅ / tests 143 ✅ 0 ❌ (Stand M2.5)
+- typecheck ✅ / lint ✅ / tests 172 ✅ 0 ❌ (Stand M3.1a)

@@ -128,3 +128,10 @@ Format pro Eintrag: Datum – Kontext – Entscheidung – Alternativen.
 - **Kontext:** Der M2.5-Integrationstest spielt das Startdeck; Funkenschlag braucht dafür den Hitze-Effekt (eigentlich M3.2).
 - **Entscheidung:** `gainHeat` als EffectSpec in `basicEffects.ts` (Hitze auf die Quelle, Abbau Ende der eigenen Runde); Trigger-Integration (onHeatGained/-Lost) bleibt in M3.2. Außerdem 6 Dateien statt ~4 (Core-Exporte + basicEffects).
 - **Alternativen:** Test ohne Funkenschlag – deckt das echte Startdeck nicht ab.
+
+---
+
+## 2026-10-01 – M3.1a: Schritt-Teilung, Counter-Variablen, Script-Kontext
+- **Kontext:** M3.1 (8.1+8.5) umfasst ~12 Dateien (> Session-Limit); `consumeHeat`/`var` brauchen einen Speicherort; `script`-Effekte müssen Effekte nachliefern; `gainGold`/`gainMaxHp` wirken eigentlich auf RunState (M6).
+- **Entscheidung:** M3.1 geteilt in M3.1a (Module + Tests) / M3.1b (pendingChoice/ChooseCards + Run-Rückkopplung); Counter-Werte in `combat.counters`, `valueCtx` verdrahtet `vars = counters` (var-Werte action-übergreifend); `hpBelowPercent`/`targetWillDie` beziehen sich auf das Ziel (ohne Ziel → false); `script` mit veränderbarem `EffectScriptCtx` (ScriptFn-Signatur unverändert, ctx typisiert über Core-Export); Gold/maxHp in Combat gepuffert (Rückkopplung M3.1b/M6); `upgradeInHand` ohne Event (cardUpgraded fehlt); Import-Zyklus basicEffects↔moreEffects belassen (Lint ok).
+- **Alternativen:** Script als Rückgabe von EffectSpecs (verliert Combat-Kontext); getrennte Value-Speicher (doppelt); Zyklus via Callback-Reinjection (überkonstruiert).

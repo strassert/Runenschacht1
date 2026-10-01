@@ -252,10 +252,9 @@ describe('executeEffect – die fünf Basis-Effekte', () => {
     expect(r.events).toEqual([{ type: 'energyChanged', entityId: 'player', delta: 2, total: 3 }])
   })
 
-  it('nicht implementierter Effect wirft Fehler', () => {
-    expect(() => executeEffect(action({ type: 'heal', amount: 5 }), combat(), makeRngStates())).toThrow(
-      /heal/,
-    )
+  it('nicht implementierter Effect wirft Fehler (heal ist seit M3.1a implementiert)', () => {
+    const unknown = { type: 'rs_zukunft', amount: 5 } as unknown as EffectSpec
+    expect(() => executeEffect(action(unknown), combat(), makeRngStates())).toThrow(/rs_zukunft/)
   })
 })
 

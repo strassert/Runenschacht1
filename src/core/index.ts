@@ -64,6 +64,9 @@ export { playCard, cardCost, type PlayCardResult } from './combat/playCard'
 export { finishCombat, isCombatOver, type FinishResult } from './combat/victory'
 export { combatReducer, type ReducerResult } from './combat/combatReducer'
 
+// EffectScriptCtx: Typ für registrierte Script-Funktionen (8.1 'script', src/content/scripts).
+export type { EffectScriptCtx } from './effects/moreEffects'
+
 export { checkInvariants, checkCombatInvariants, type InvariantViolation } from './invariants'
 
 export {

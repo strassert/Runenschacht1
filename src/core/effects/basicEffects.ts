@@ -1,9 +1,9 @@
 // Ausführung der Basis-Effekte (Masterplan 8.1, Schritt M2.3): damage,
 // block, applyStatus, draw, gainEnergy (+ gainHeat seit M2.5, für Funkenschlag). Pure: neues combat/rngStates +
-// GameEvents. ValueExpr-Auswertung inklusive. Andere EffectSpec-Typen
-// folgen ab M3 und sind bis dahin ein Fehler.
+// GameEvents. ValueExpr-Auswertung seit M3.1a in valueExpr.ts; alle übrigen
+// EffectSpec-Typen delegiert der default-Fall an moreEffects.ts.
 import type { TargetMode } from '../types/cards'
-import type { EffectSpec, ValueExpr } from '../types/effects'
+import type { EffectSpec } from '../types/effects'
 import type { GameEvent } from '../types/events'
 import type { Combatant, CombatState, EntityId, PlayerCombatState } from '../types/state'
 import type { RngStates } from '../rng/streams'
@@ -12,6 +12,11 @@ import { applyDamage } from '../combat/damage'
 import { applyBlock } from '../combat/block'
 import { applyStatus } from '../combat/statuses'
 import { resolveTargets } from './targeting'
+import { evaluateValue, valueCtx } from './valueExpr'
+import { executeExtendedEffect } from './moreEffects'
+
+// Re-export (bestehende Imports von evaluateValue/ValueContext aus basicEffects bleiben gültig).
+export { evaluateValue, valueCtx, type ValueContext } from './valueExpr'
 
 /** Eine auszuführende Effect-Instanz (die Action der Queue, Masterplan 8.2). */
 export interface EffectInvocation {
@@ -28,49 +33,13 @@ export interface EffectResult {
   events: GameEvent[]
 }
 
-export interface ValueContext {
-  combat: CombatState
-  source: Combatant
-  target: Combatant | null
-  vars: Record<string, number> // consumeHeat etc. – M3+, Standard: leer
-  xValue: number // X-Kosten-Karten, M3+, Standard: 0
-}
-
-export function evaluateValue(expr: ValueExpr, ctx: ValueContext): number {
-  if (typeof expr === 'number') return expr
-  switch (expr.kind) {
-    case 'perStatus': {
-      const holder = expr.of === 'target' ? (ctx.target ?? ctx.source) : ctx.source
-      const stacks = holder.statuses.find((s) => s.id === expr.status)?.stacks ?? 0
-      return expr.base + expr.per * stacks
-    }
-    case 'var':
-      return (ctx.vars[expr.name] ?? 0) * (expr.mul ?? 1) + (expr.add ?? 0)
-    case 'x':
-      return ctx.xValue * (expr.mul ?? 1) + (expr.add ?? 0)
-    case 'currentBlock':
-      return ctx.source.block * (expr.mul ?? 1)
-    case 'cardsInPile': {
-      const pile =
-        expr.pile === 'draw'
-          ? ctx.combat.player.drawPile
-          : expr.pile === 'hand'
-            ? ctx.combat.player.hand
-            : expr.pile === 'discard'
-              ? ctx.combat.player.discardPile
-              : ctx.combat.player.exhaustPile
-      return pile.length * (expr.mul ?? 1)
-    }
-  }
-}
-
-function findCombatant(combat: CombatState, id: EntityId): Combatant | null {
+export function findCombatant(combat: CombatState, id: EntityId): Combatant | null {
   if (id === combat.player.id) return combat.player
   return combat.enemies.find((e) => e.id === id) ?? null
 }
 
 /** Combatant (hp/maxHp/block/statuses) in den CombatState zurückschreiben. */
-function withCombatant(combat: CombatState, updated: Combatant): CombatState {
+export function withCombatant(combat: CombatState, updated: Combatant): CombatState {
   if (updated.id === combat.player.id) {
     const player: PlayerCombatState = {
       ...combat.player,
@@ -89,10 +58,6 @@ function withCombatant(combat: CombatState, updated: Combatant): CombatState {
         : e,
     ),
   }
-}
-
-function valueCtx(combat: CombatState, source: Combatant, target: Combatant | null): ValueContext {
-  return { combat, source, target, vars: {}, xValue: 0 }
 }
 
 export function executeEffect(
@@ -154,7 +119,7 @@ export function executeEffect(
       return { combat: withCombatant(combat, result.combatant), rngStates, events: result.events }
     }
     default:
-      throw new Error(`Effect '${effect.type}' ist bis M2.5 nicht implementiert`)
+      return executeExtendedEffect(invocation, combat, rngStates)
   }
 }
 
