@@ -21,12 +21,16 @@ export function finishCombat(run: RunState, combat: CombatState): FinishResult {
   }
   const victory = combat.phase === 'victory'
   const kills = combat.enemies.filter((e) => !e.alive).length
+  const goldGained = combat.counters['goldGained'] ?? 0
   const run2: RunState = {
     ...run,
     hp: Math.max(0, combat.player.hp),
+    maxHp: combat.player.maxHp, // gainMaxHp im Kampf wirkt auf den Run
+    gold: run.gold + goldGained,
     combat,
     stats: {
       ...run.stats,
+      goldEarned: run.stats.goldEarned + goldGained,
       kills: run.stats.kills + kills,
       cardsPlayed: run.stats.cardsPlayed + combat.cardsPlayedThisCombat,
       combatsWon: run.stats.combatsWon + (victory ? 1 : 0),

@@ -3,8 +3,8 @@
 // RelicInstance, PotionId, MapState, ScreenState, RewardState, ShopState,
 // EventState, RunStats) sind hier minimal definiert und werden in den
 // jeweiligen Meilensteinen (M3–M8) ausgebaut.
-import type { CardId, CardInstance } from './cards'
-import type { StatusId } from './effects'
+import type { CardId, CardInstance, CardUid, TargetMode } from './cards'
+import type { EffectSpec, StatusId } from './effects'
 import type { IntentPreview } from './enemies'
 
 export type EntityId = string // "player", "enemy-0", "enemy-1", ...
@@ -45,6 +45,31 @@ export interface PlayerCombatState extends Combatant {
   cardsRemovedThisCombat: number
 }
 
+/** Auswahl-Arten für Effekte mit choice:'player' (8.5). */
+export type ChoiceKind = 'discard' | 'exhaustFromHand' | 'upgradeInHand'
+
+/** Serialisierte Action der Action-Queue (8.2) – Queue-Rest während einer Pause. */
+export interface QueuedAction {
+  effect: EffectSpec
+  sourceId: EntityId
+  targetId: EntityId | null
+  targetMode?: TargetMode
+  front?: boolean
+  /** UID der Karte, die den Effekt auslöste (Kandidaten schließen sie aus). */
+  sourceCardUid?: CardUid
+}
+
+/** Offene Spieler-Auswahl (8.5): die Queue pausiert bis Command 'ChooseCards'. */
+export interface PendingChoice {
+  kind: ChoiceKind
+  count: number
+  /** wählbare Karten-UIDs (Hand, ohne die gespielte Karte). */
+  candidates: CardUid[]
+  sourceCardUid: CardUid | null
+  /** Queue-Rest, läuft nach der Auswahl weiter. */
+  remainingActions: QueuedAction[]
+}
+
 export interface CombatState {
   turn: number
   phase: 'playerTurn' | 'enemyTurn' | 'victory' | 'defeat'
@@ -52,8 +77,10 @@ export interface CombatState {
   enemies: EnemyState[]
   cardsPlayedThisTurn: CardInstance[]
   cardsPlayedThisCombat: number
-  counters: Record<string, number> // für Artefakte/Karten („3. Angriff pro Runde“)
+  counters: Record<string, number> // für Artefakte/Karten („3. Angriff pro Runde”)
   roomType: 'combat' | 'elite' | 'boss'
+  /** Offene choice:'player'-Auswahl (8.5); solange gesetzt, nur 'ChooseCards' erlaubt. */
+  pendingChoice?: PendingChoice | null
 }
 
 // ---------- Run ----------

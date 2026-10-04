@@ -6,5 +6,6 @@ import type { EntityId } from './state'
 export type Command =
   | { type: 'playCard'; cardUid: CardUid; targetId?: EntityId }
   | { type: 'endTurn' }
+  | { type: 'ChooseCards'; uids: CardUid[] }
   | { type: 'chooseReward'; index: number | 'skip' }
   | { type: 'chooseMapNode'; nodeId: string }

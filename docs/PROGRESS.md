@@ -10,17 +10,18 @@
 - [x] M2.4 – Kampfaufbau & Rundenablauf: `combat/combatSetup.ts` (HP-Würfel, Mischen, innate oben, onSpawn, Intents Runde 1), `combat/turn.ts` (startPlayerTurn, endPlayerTurn mit ethereal/retain, runEnemyTurn links→rechts), `combat/enemyAi.ts` (weighted mit maxRepeat, cycle mit startRandom), ehrliche Intents (damagePreview = echter Schaden). 137 Tests.
 - [x] M2.5 – Commands & Kampfende: `combat/playCard.ts` (Phasen-/Hand-/unplayable-Prüfung, `cardCost` mit X-Kosten, Effekte via Action-Queue, Ablage/Erschöpfung auch nach Kampfende), `combat/victory.ts` (`combatEnded`, HP-Rückkopplung, kills/cardsPlayed/combatsWon), `combat/combatReducer.ts` (playCard/endTurn-Kette bis Kampfende; chooseReward/chooseMapNode → M6), `gainHeat` in `basicEffects.ts` (für Funkenschlag, siehe DECISIONS), Core-Exporte; Integrationstest Startdeck vs. 2 Grubenratten (Sieg, Determinismus, Invarianten pro Command). 143 Tests.
 - [x] M3.1a – Effekte (Teil 1/2 von M3.1): `effects/valueExpr.ts` (ValueExpr-Module, `vars` = combat.counters), `effects/conditions.ts` (alle 4 ConditionExpr), `effects/moreEffects.ts` (consumeHeat, heal, loseHp, addCard, discard/exhaustFromHand/upgradeInHand mit choice 'random', gainGold, gainMaxHp, conditional, repeat, script), `script` über Registry + veränderbarer `EffectScriptCtx`; M3.1 wegen Dateiumfang geteilt (M3.1a/M3.1b, DECISIONS). 172 Tests.
+- [x] M3.1b – Spieler-Auswahl (Teil 2/2 von M3.1): `PendingChoice`/`QueuedAction` in `types/state.ts`, Command `ChooseCards`; Action-Queue pausiert bei `choice:'player'` (discard/exhaustFromHand/upgradeInHand) und fährt nach `ChooseCards` mit dem Queue-Rest fort (Kandidaten = Hand ohne gespielte Karte, Auto-Wahl bei Kandidaten ≤ count, Ketten-Pausen möglich); `finishCombat` rückkoppelt `counters.goldGained` + Kampf-maxHp in den RunState. 183 Tests.
 
 ## In Arbeit
 - (nichts)
 
 ## Nächster Schritt
-- **ID:** M3.1b – `pendingChoice`/`ChooseCards` + `choice:'player'` + Run-Rückkopplung (Teil 2/2 von M3.1)
-- **Ziel:** `pendingChoice`/`ChooseCards` als Datenmodell (8.5); Action-Queue pausiert bei `choice:'player'` (discard/exhaustFromHand/upgradeInHand) und läuft nach Command fort; gainGold/gainMaxHp → RunState.
-- **Dateien:** `src/core/types/state.ts`, `src/core/types/commands.ts`, `src/core/combat/actionQueue.ts`, `src/core/combat/combatReducer.ts`, Tests
-- **Plan lesen:** `docs/plan/05-effekte-trigger.md` → nur 8.5
-- **Code nachschlagen:** `src/core/effects/moreEffects.ts`, `src/core/combat/actionQueue.ts`, `src/core/combat/combatReducer.ts`, `src/core/types/state.ts`
-- **Fertig wenn:** ChooseCards-Datenmodell + choice-'player'-Pause/Fortsetzung per Command getestet.
+- **ID:** M3.2 – Trigger-Hooks + Dispatch, Keywords, X-Kosten, Upgrade-Anwendung
+- **Ziel:** Trigger-Hooks + Dispatch-Reihenfolge (8.3); Hitze halbieren am Rundenende via onHeatGained/Lost; Keywords exhaust/ethereal/retain/innate/unplayable; X-Kosten; `costOverride`; `CardUpgradeSpec`-Anwendung (10.1).
+- **Dateien:** `src/core/triggers/hooks.ts`, `src/core/triggers/dispatch.ts`, `src/core/deck/upgrade.ts`, Tests
+- **Plan lesen:** `docs/plan/05-effekte-trigger.md` → nur 8.3; `docs/plan/07-karten.md` → nur 10.1
+- **Code nachschlagen:** `src/core/combat/statuses.ts` (Hitse-Halbierung), `src/core/combat/turn.ts` (ethereal/retain), `src/core/combat/playCard.ts` (cardCost/X), `src/core/deck/upgrade.ts`
+- **Fertig wenn:** Keyword-, Hitze- und Upgrade-Tests grün.
 
 ## Offene Punkte / Bekannte Bugs
 - `npm run sim` ist bis M11 ein Platzhalter.
@@ -33,7 +34,7 @@
 - Run-Statistik `damageDealt` / `damageTaken` wird in `finishCombat` noch nicht aktualisiert (Trigger-Engine M4, Statistik-Ausbau M7).
 - `cardUpgraded`-Event fehlt (events.ts): `upgradeInHand` erzeugt derzeit kein Event.
 - `ValueContext.xValue` ist in `playCard` noch nicht verdrahtet (X-Kosten → Wert fehlt, M3.2+).
-- `gainGold` / `gainMaxHp` puffern nur in Combat (`counters.goldGained` / maxHp); RunState-Rückkopplung in M3.1b/M6.
+- `choice:'player'` innerhalb von `repeat`/`conditional`/`script` wird nicht abgefangen (nur Queue-Top-Level pausiert) – bei Bedarf in M3.2/M4 nachrüsten.
 
 ## Letzter Testlauf
-- typecheck ✅ / lint ✅ / tests 172 ✅ 0 ❌ (Stand M3.1a)
+- typecheck ✅ / lint ✅ / tests 183 ✅ 0 ❌ (Stand M3.1b)

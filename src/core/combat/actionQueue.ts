@@ -4,15 +4,23 @@
 // oder nach vorne einreihen. Schutz: max. MAX_ACTIONS_PER_COMMAND Actions
 // pro Command (Endlosschleife → Fehler). Nach jeder Action folgt die
 // Tod-Prüfung: Kampfabschluss → Queue leeren und Kampf beenden.
+// Actions mit choice:'player' pausieren die Queue als pendingChoice (8.5);
+// der Command 'ChooseCards' (combatReducer) setzt sie fort.
+import type { CardUid } from '../types/cards'
+import type { EffectSpec } from '../types/effects'
 import type { GameEvent } from '../types/events'
-import type { CombatState } from '../types/state'
+import type { ChoiceKind, CombatState } from '../types/state'
 import type { RngStates } from '../rng/streams'
 import { MAX_ACTIONS_PER_COMMAND } from '../constants'
+import { discardCard, exhaustCard } from '../deck/piles'
+import { upgradeCard } from '../deck/upgrade'
 import { executeEffect, type EffectInvocation } from '../effects/basicEffects'
 
 export interface Action extends EffectInvocation {
   /** true = nach vorne einreihen (Sofortreaktion), sonst ans Ende (Standard). */
   front?: boolean
+  /** UID der Karte, die die Action auslöste (choice-Kandidaten schließen sie aus). */
+  sourceCardUid?: CardUid
 }
 
 export interface ActionStep {
@@ -39,6 +47,57 @@ export interface QueueResult {
   rngStates: RngStates
   events: GameEvent[]
   actionsProcessed: number
+}
+
+type ChoiceEffect = Extract<EffectSpec, { type: ChoiceKind }>
+
+/** choice:'player'-Action? (discard/exhaustFromHand/upgradeInHand, 8.5). */
+function choiceSpecOf(action: Action): ChoiceEffect | null {
+  const e = action.effect
+  const isChoice =
+    (e.type === 'discard' || e.type === 'exhaustFromHand' || e.type === 'upgradeInHand') &&
+    e.choice === 'player'
+  return isChoice ? e : null
+}
+
+function choiceCount(effect: ChoiceEffect, candidates: number): number {
+  if (effect.count === 'all') return candidates
+  return Math.max(0, Math.floor(effect.count))
+}
+
+/** Wählbare Hand-UIDs – die gespielte Karte ist während der Queue noch auf der Hand. */
+function handCandidates(combat: CombatState, sourceCardUid: CardUid | undefined): CardUid[] {
+  return combat.player.hand.filter((c) => c.uid !== sourceCardUid).map((c) => c.uid)
+}
+
+export interface ChoiceApplyResult {
+  combat: CombatState
+  events: GameEvent[]
+}
+
+/** Auswahl anwenden (8.5): gewählte UIDs ablegen/erschöpfen/verbessern. */
+export function applyPlayerChoice(
+  kind: ChoiceKind,
+  combat: CombatState,
+  uids: readonly CardUid[],
+): ChoiceApplyResult {
+  if (kind === 'upgradeInHand') {
+    const chosen = new Set(uids)
+    const player = {
+      ...combat.player,
+      hand: combat.player.hand.map((c) => (chosen.has(c.uid) ? upgradeCard(c) : c)),
+    }
+    // cardUpgraded-Event gibt es noch nicht (Offener Punkt) – state ist sofort korrekt.
+    return { combat: { ...combat, player }, events: [] }
+  }
+  let player = combat.player
+  const events: GameEvent[] = []
+  for (const uid of uids) {
+    const moved = kind === 'discard' ? discardCard(player, uid) : exhaustCard(player, uid)
+    player = moved.player
+    events.push(...moved.events)
+  }
+  return { combat: { ...combat, player }, events }
 }
 
 /**
@@ -83,6 +142,37 @@ export function runActionQueue(
     }
     const action = queue.shift()
     if (action === undefined) break
+
+    const choice = choiceSpecOf(action)
+    if (choice !== null) {
+      const candidates = handCandidates(c, action.sourceCardUid)
+      const count = choiceCount(choice, candidates.length)
+      if (count === 0 || candidates.length === 0) {
+        processed++ // nichts wählbar – der Effekt verpufft
+        continue
+      }
+      if (candidates.length <= count) {
+        // Höchstens count Kandidaten → alles automatisch, ohne Pause (8.5).
+        const applied = applyPlayerChoice(choice.type, c, candidates)
+        c = applied.combat
+        events.push(...applied.events)
+        processed++
+        continue
+      }
+      // Pause: Queue-Rest in pendingChoice; 'ChooseCards' (combatReducer) fährt fort.
+      c = {
+        ...c,
+        pendingChoice: {
+          kind: choice.type,
+          count,
+          candidates,
+          sourceCardUid: action.sourceCardUid ?? null,
+          remainingActions: [...queue],
+        },
+      }
+      break
+    }
+
     const step = execute(action, c, states)
     c = step.combat
     states = step.rngStates

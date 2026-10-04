@@ -36,6 +36,9 @@ export type {
   EventState,
   RunStats,
   RunState,
+  ChoiceKind,
+  QueuedAction,
+  PendingChoice,
 } from './types/state'
 
 export { cyrb128, hashSeed, Rng, type RngState } from './rng/Rng'

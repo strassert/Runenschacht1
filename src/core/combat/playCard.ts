@@ -61,6 +61,7 @@ export function playCard(
     effect,
     sourceId: combat.player.id,
     targetId,
+    sourceCardUid: card.uid,
   }))
   const queue = runActionQueue(actions, c, rngStates)
   c = queue.combat

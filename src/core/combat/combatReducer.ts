@@ -3,14 +3,17 @@
 // events sind das chronologische Animations-Protokoll. playCard → playCard();
 // endTurn → endPlayerTurn → runEnemyTurn → startPlayerTurn (kette, bricht bei
 // Kampfende ab); danach finishCombat (combatEnded, HP/Statistik im Run).
+// ChooseCards (8.5) setzt eine pausierte Action-Queue fort;
 // chooseReward/chooseMapNode folgen in M6.
+import type { CardUid } from '../types/cards'
 import type { Command } from '../types/commands'
-import type { RunState } from '../types/state'
+import type { CombatState, PendingChoice, RunState } from '../types/state'
 import type { GameEvent } from '../types/events'
 import type { TurnResult } from './turn'
 import { endPlayerTurn, runEnemyTurn, startPlayerTurn } from './turn'
 import { playCard } from './playCard'
 import { finishCombat, isCombatOver } from './victory'
+import { applyPlayerChoice, runActionQueue } from './actionQueue'
 
 export interface ReducerResult {
   state: RunState
@@ -25,14 +28,56 @@ function applyTurnResult(state: RunState, result: TurnResult): ReducerResult {
   return { state: finished.run, events: [...result.events, ...finished.events] }
 }
 
+/** ChooseCards (8.5): Auswahl validieren, anwenden, Queue-Rest fortsetzen. */
+function resumeChoice(
+  state: RunState,
+  combat: CombatState,
+  pending: PendingChoice,
+  uids: readonly CardUid[],
+): ReducerResult {
+  if (uids.length !== pending.count) {
+    throw new Error(`ChooseCards: ${pending.count} Karten erwartet, erhalten: ${uids.length}`)
+  }
+  if (new Set(uids).size !== uids.length) {
+    throw new Error('ChooseCards: UID-Wiederholungen sind nicht erlaubt')
+  }
+  const candidates = new Set(pending.candidates)
+  for (const uid of uids) {
+    if (!candidates.has(uid)) {
+      throw new Error(`ChooseCards: Karte '${uid}' ist keine der Kandidaten`)
+    }
+  }
+  const cleared: CombatState = { ...combat, pendingChoice: null }
+  const applied = applyPlayerChoice(pending.kind, cleared, uids)
+  const queue = runActionQueue(pending.remainingActions, applied.combat, state.rngStates)
+  const merged: TurnResult = {
+    combat: queue.combat,
+    rngStates: queue.rngStates,
+    events: [...applied.events, ...queue.events],
+  }
+  return applyTurnResult(state, merged)
+}
+
 export function combatReducer(state: RunState, cmd: Command): ReducerResult {
   const combat = state.combat
   if (combat === null) throw new Error('combatReducer: es ist kein Kampf aktiv')
   if (isCombatOver(combat)) {
     throw new Error(`combatReducer: der Kampf ist bereits beendet (Phase '${combat.phase}')`)
   }
+  const pending = combat.pendingChoice ?? null
+  if (pending !== null && cmd.type !== 'ChooseCards') {
+    throw new Error(
+      "combatReducer: offene Spieler-Auswahl (pendingChoice) – nur 'ChooseCards' ist erlaubt",
+    )
+  }
 
   switch (cmd.type) {
+    case 'ChooseCards': {
+      if (pending === null) {
+        throw new Error("combatReducer: 'ChooseCards' braucht eine offene pendingChoice")
+      }
+      return resumeChoice(state, combat, pending, cmd.uids)
+    }
     case 'playCard': {
       const result = playCard(combat, state.rngStates, cmd.cardUid, cmd.targetId ?? null)
       return applyTurnResult(state, result)
